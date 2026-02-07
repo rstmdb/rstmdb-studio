@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Circle, Trash2 } from 'lucide-react'
 import type { StateNode, TransitionEdge } from '../../../lib/machine-builder/types'
 
@@ -10,7 +10,7 @@ interface StatePropertiesProps {
   onDelete: () => void
 }
 
-export function StateProperties({
+function StatePropertiesContent({
   node,
   edges,
   onRename,
@@ -18,10 +18,6 @@ export function StateProperties({
   onDelete,
 }: StatePropertiesProps) {
   const [name, setName] = useState(node.data.label)
-
-  useEffect(() => {
-    setName(node.data.label)
-  }, [node.data.label])
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value)
@@ -136,4 +132,9 @@ export function StateProperties({
       </button>
     </div>
   )
+}
+
+export function StateProperties(props: StatePropertiesProps) {
+  // Use key to reset state when node changes
+  return <StatePropertiesContent key={props.node.id} {...props} />
 }

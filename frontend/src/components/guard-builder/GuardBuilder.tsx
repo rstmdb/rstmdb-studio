@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { Code, Layers } from 'lucide-react'
 import { ConditionGroupComponent } from './ConditionGroupComponent'
 import {
@@ -220,7 +220,7 @@ function createInitialGroup(): ConditionGroup {
   }
 }
 
-export function GuardBuilder({ value, onChange }: GuardBuilderProps) {
+function GuardBuilderContent({ value, onChange }: GuardBuilderProps) {
   const [mode, setMode] = useState<'visual' | 'raw'>('visual')
   const [rawValue, setRawValue] = useState(value || '')
   const [group, setGroup] = useState<ConditionGroup>(() => {
@@ -228,44 +228,23 @@ export function GuardBuilder({ value, onChange }: GuardBuilderProps) {
     return parsed || createInitialGroup()
   })
 
-  // Track previous mode to detect mode switches
-  const prevModeRef = useRef(mode)
-
-  useEffect(() => {
-    setRawValue(value || '')
-  }, [value])
-
-  // Only parse expression when switching FROM raw TO visual mode
-  useEffect(() => {
-    const wasRaw = prevModeRef.current === 'raw'
-    prevModeRef.current = mode
-
-    if (mode === 'visual' && wasRaw && value) {
-      const parsed = parseExpression(value)
+  // Handle mode switches - parse expression when switching FROM raw TO visual
+  const handleModeSwitch = useCallback((newMode: 'visual' | 'raw') => {
+    if (newMode === 'visual' && mode === 'raw' && rawValue) {
+      const parsed = parseExpression(rawValue)
       if (parsed) {
         setGroup(parsed)
       }
     }
-  }, [mode, value])
+    setMode(newMode)
+  }, [mode, rawValue])
 
-  // Sync expression to parent when group changes (only in visual mode)
-  const isInitialMount = useRef(true)
-  useEffect(() => {
-    // Skip on initial mount to avoid overwriting parent value
-    if (isInitialMount.current) {
-      isInitialMount.current = false
-      return
-    }
-
-    if (mode === 'visual') {
-      const expr = generateExpression(group)
-      onChange(expr || undefined)
-    }
-  }, [mode, group, onChange])
-
+  // Update group and immediately notify parent
   const handleGroupUpdate = useCallback((newGroup: ConditionGroup) => {
     setGroup(newGroup)
-  }, [])
+    const expr = generateExpression(newGroup)
+    onChange(expr || undefined)
+  }, [onChange])
 
   const handleRawChange = (newValue: string) => {
     setRawValue(newValue)
@@ -289,7 +268,7 @@ export function GuardBuilder({ value, onChange }: GuardBuilderProps) {
       <div className="flex items-center justify-between">
         <div className="flex gap-1 p-0.5 bg-background rounded-lg">
           <button
-            onClick={() => setMode('visual')}
+            onClick={() => handleModeSwitch('visual')}
             className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
               mode === 'visual'
                 ? 'bg-surface text-foreground'
@@ -300,7 +279,7 @@ export function GuardBuilder({ value, onChange }: GuardBuilderProps) {
             Visual
           </button>
           <button
-            onClick={() => setMode('raw')}
+            onClick={() => handleModeSwitch('raw')}
             className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
               mode === 'raw'
                 ? 'bg-surface text-foreground'
@@ -347,4 +326,9 @@ export function GuardBuilder({ value, onChange }: GuardBuilderProps) {
       )}
     </div>
   )
+}
+
+export function GuardBuilder(props: GuardBuilderProps) {
+  // Use key to reset component state when value prop changes externally
+  return <GuardBuilderContent key={props.value ?? '__empty__'} {...props} />
 }

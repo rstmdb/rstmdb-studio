@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { X, Shield } from 'lucide-react'
 import { GuardBuilder } from './GuardBuilder'
 
@@ -9,16 +9,8 @@ interface GuardBuilderModalProps {
   onSave: (value: string | undefined) => void
 }
 
-export function GuardBuilderModal({ isOpen, onClose, value, onSave }: GuardBuilderModalProps) {
+function GuardBuilderModalContent({ value, onSave, onClose }: Omit<GuardBuilderModalProps, 'isOpen'>) {
   const [localValue, setLocalValue] = useState(value)
-
-  useEffect(() => {
-    if (isOpen) {
-      setLocalValue(value)
-    }
-  }, [isOpen, value])
-
-  if (!isOpen) return null
 
   const handleSave = () => {
     onSave(localValue)
@@ -73,5 +65,19 @@ export function GuardBuilderModal({ isOpen, onClose, value, onSave }: GuardBuild
         </div>
       </div>
     </div>
+  )
+}
+
+export function GuardBuilderModal({ isOpen, onClose, value, onSave }: GuardBuilderModalProps) {
+  if (!isOpen) return null
+
+  // Use key to reset state when modal opens with new value
+  return (
+    <GuardBuilderModalContent
+      key={value ?? '__empty__'}
+      value={value}
+      onSave={onSave}
+      onClose={onClose}
+    />
   )
 }

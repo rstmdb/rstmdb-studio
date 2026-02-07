@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Check, AlertCircle } from 'lucide-react'
@@ -52,47 +52,36 @@ function definitionsEqual(
   return true
 }
 
-export function MachineDetailPage() {
-  const { name } = useParams<{ name: string }>()
+// Inner component that handles version-specific state
+// Uses key prop to reset when version changes
+function MachineVersionEditor({
+  name,
+  version,
+  initialDefinition,
+  versions,
+  selectedVersion,
+  onVersionSelect,
+  onVersionCreated,
+}: {
+  name: string
+  version: number
+  initialDefinition: MachineDefinition
+  versions: number[]
+  selectedVersion: number
+  onVersionSelect: (v: number) => void
+  onVersionCreated: (newVersion: number) => void
+}) {
   const queryClient = useQueryClient()
-  const [selectedVersion, setSelectedVersion] = useState<number | null>(null)
-  const [editorValue, setEditorValue] = useState('')
-  const [definition, setDefinition] = useState<MachineDefinition | undefined>()
+  const [editorValue, setEditorValue] = useState(() =>
+    JSON.stringify(initialDefinition, null, 2)
+  )
+  const [definition, setDefinition] = useState<MachineDefinition>(initialDefinition)
   const [viewMode, setViewMode] = useState<ViewMode>('visual')
   const [validationResult, setValidationResult] = useState<{
     valid: boolean
     errors: Array<{ code: string; message: string; path?: string }>
     warnings: Array<{ code: string; message: string; path?: string }>
   } | null>(null)
-
-  const { data: machineInfo, isLoading } = useQuery({
-    queryKey: ['machine', name],
-    queryFn: () => machines.get(name!),
-    enabled: !!name,
-  })
-
-  const { data: versionData } = useQuery({
-    queryKey: ['machine-version', name, selectedVersion],
-    queryFn: () => machines.getVersion(name!, selectedVersion!),
-    enabled: !!name && selectedVersion !== null,
-  })
-
-  // Set initial version when machine info loads
-  useEffect(() => {
-    if (machineInfo && selectedVersion === null) {
-      const latest = Math.max(...machineInfo.versions)
-      setSelectedVersion(latest)
-    }
-  }, [machineInfo, selectedVersion])
-
-  // Update editor and definition when version data loads
-  useEffect(() => {
-    if (versionData) {
-      const json = JSON.stringify(versionData.definition, null, 2)
-      setEditorValue(json)
-      setDefinition(versionData.definition)
-    }
-  }, [versionData])
 
   const validateMutation = useMutation({
     mutationFn: (def: unknown) => machines.validate(def),
@@ -103,30 +92,27 @@ export function MachineDetailPage() {
 
   const createVersionMutation = useMutation({
     mutationFn: (def: unknown) =>
-      machines.createVersion(name!, def as MachineDefinition, {
-        baseVersion: selectedVersion ?? undefined,
+      machines.createVersion(name, def as MachineDefinition, {
+        baseVersion: version,
       }),
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['machine', name] })
       setValidationResult(null)
-      // Select the new version if created
       if (result.created) {
-        setSelectedVersion(result.version)
+        onVersionCreated(result.version)
       }
     },
   })
 
   // Check if current definition differs from the loaded version
   const hasChanges = useMemo(() => {
-    if (!versionData?.definition || !definition) return false
-    return !definitionsEqual(definition, versionData.definition)
-  }, [definition, versionData?.definition])
+    return !definitionsEqual(definition, initialDefinition)
+  }, [definition, initialDefinition])
 
   // Handle changes from the visual builder
   const handleBuilderChange = useCallback((newDefinition: MachineDefinition) => {
     setDefinition(newDefinition)
     setEditorValue(JSON.stringify(newDefinition, null, 2))
-    // Clear validation so user knows to re-validate
     setValidationResult(null)
   }, [])
 
@@ -165,7 +151,6 @@ export function MachineDetailPage() {
   }
 
   const handleViewModeChange = useCallback((mode: ViewMode) => {
-    // Sync definition before switching views
     if (mode === 'visual' && viewMode === 'json') {
       try {
         const parsed = JSON.parse(editorValue) as MachineDefinition
@@ -176,14 +161,6 @@ export function MachineDetailPage() {
     }
     setViewMode(mode)
   }, [viewMode, editorValue])
-
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="text-muted">Loading...</div>
-      </div>
-    )
-  }
 
   return (
     <div className="p-6 h-full flex flex-col">
@@ -198,8 +175,7 @@ export function MachineDetailPage() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold">{name}</h1>
           <p className="text-muted text-sm">
-            {machineInfo?.versions.length} version
-            {machineInfo?.versions.length !== 1 ? 's' : ''}
+            {versions.length} version{versions.length !== 1 ? 's' : ''}
           </p>
         </div>
         <div className="flex gap-2">
@@ -229,10 +205,10 @@ export function MachineDetailPage() {
       <div className="flex items-center gap-2 mb-4">
         <span className="text-sm text-muted">Version:</span>
         <div className="flex gap-1">
-          {machineInfo?.versions.map((v) => (
+          {versions.map((v) => (
             <button
               key={v}
-              onClick={() => setSelectedVersion(v)}
+              onClick={() => onVersionSelect(v)}
               className={`px-3 py-1 text-sm rounded ${
                 selectedVersion === v
                   ? 'bg-primary text-white'
@@ -256,7 +232,6 @@ export function MachineDetailPage() {
           />
         ) : (
           <div className="h-full flex flex-col border border-border rounded-lg overflow-hidden">
-            {/* JSON Editor Toolbar */}
             <div className="bg-surface px-4 py-2 border-b border-border flex items-center justify-between">
               <span className="text-sm font-medium">Definition (JSON)</span>
               <div className="flex items-center border border-border rounded-lg overflow-hidden">
@@ -266,9 +241,7 @@ export function MachineDetailPage() {
                 >
                   Visual
                 </button>
-                <button
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-white transition-colors"
-                >
+                <button className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-white transition-colors">
                   JSON
                 </button>
               </div>
@@ -305,16 +278,12 @@ export function MachineDetailPage() {
             {validationResult.valid ? (
               <>
                 <Check className="w-5 h-5 text-secondary" />
-                <span className="font-medium text-secondary">
-                  Validation passed
-                </span>
+                <span className="font-medium text-secondary">Validation passed</span>
               </>
             ) : (
               <>
                 <AlertCircle className="w-5 h-5 text-destructive" />
-                <span className="font-medium text-destructive">
-                  Validation failed
-                </span>
+                <span className="font-medium text-destructive">Validation failed</span>
               </>
             )}
           </div>
@@ -343,5 +312,56 @@ export function MachineDetailPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export function MachineDetailPage() {
+  const { name } = useParams<{ name: string }>()
+  const [selectedVersion, setSelectedVersion] = useState<number | null>(null)
+
+  const { data: machineInfo, isLoading } = useQuery({
+    queryKey: ['machine', name],
+    queryFn: () => machines.get(name!),
+    enabled: !!name,
+  })
+
+  // Compute effective version - use selected or latest
+  const latestVersion = machineInfo ? Math.max(...machineInfo.versions) : null
+  const effectiveVersion = selectedVersion ?? latestVersion
+
+  const { data: versionData, isLoading: isVersionLoading } = useQuery({
+    queryKey: ['machine-version', name, effectiveVersion],
+    queryFn: () => machines.getVersion(name!, effectiveVersion!),
+    enabled: !!name && effectiveVersion !== null,
+  })
+
+  const handleVersionSelect = useCallback((v: number) => {
+    setSelectedVersion(v)
+  }, [])
+
+  const handleVersionCreated = useCallback((newVersion: number) => {
+    setSelectedVersion(newVersion)
+  }, [])
+
+  if (isLoading || isVersionLoading || !machineInfo || !versionData || effectiveVersion === null) {
+    return (
+      <div className="p-6">
+        <div className="text-muted">Loading...</div>
+      </div>
+    )
+  }
+
+  // Use key to reset editor state when version changes
+  return (
+    <MachineVersionEditor
+      key={`${name}-${effectiveVersion}`}
+      name={name!}
+      version={effectiveVersion}
+      initialDefinition={versionData.definition}
+      versions={machineInfo.versions}
+      selectedVersion={effectiveVersion}
+      onVersionSelect={handleVersionSelect}
+      onVersionCreated={handleVersionCreated}
+    />
   )
 }

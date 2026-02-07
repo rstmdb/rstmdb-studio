@@ -115,7 +115,11 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn init_admin(username: &str, password: &str, data_dir: &std::path::Path) -> anyhow::Result<()> {
+async fn init_admin(
+    username: &str,
+    password: &str,
+    data_dir: &std::path::Path,
+) -> anyhow::Result<()> {
     let data_dir = shellexpand::tilde(&data_dir.to_string_lossy()).to_string();
     let data_dir = PathBuf::from(data_dir);
 

@@ -297,15 +297,16 @@ export function useMachineBuilder(options: UseMachineBuilderOptions = {}) {
   // Load from definition (does NOT trigger onChange to prevent loops)
   const loadDefinition = useCallback(
     (definition: MachineDefinition, applyLayout: boolean = false) => {
-      let { nodes: newNodes, edges: newEdges } = definitionToFlow(definition)
+      const { nodes: newNodes, edges: newEdges } = definitionToFlow(definition)
+    let layoutedNodes = newNodes
       metaRef.current = definition.meta
 
       // Apply auto-layout if requested and no saved positions exist
       if (applyLayout && !definition.meta?._builderPositions) {
-        newNodes = applyAutoLayout(newNodes, newEdges, 'LR')
+        layoutedNodes = applyAutoLayout(newNodes, newEdges, 'LR')
       }
 
-      setNodes(newNodes)
+      setNodes(layoutedNodes)
       setEdges(newEdges)
       setSelection({ type: 'none', id: null })
     },

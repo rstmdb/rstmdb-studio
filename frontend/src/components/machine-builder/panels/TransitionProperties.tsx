@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ArrowRight, Trash2, Shield, Pencil } from 'lucide-react'
 import type { StateNode, TransitionEdge } from '../../../lib/machine-builder/types'
 import { GuardBuilderModal } from '../../guard-builder'
@@ -11,7 +11,7 @@ interface TransitionPropertiesProps {
   onDelete: () => void
 }
 
-export function TransitionProperties({
+function TransitionPropertiesContent({
   edge,
   nodes,
   onUpdateEvent,
@@ -21,11 +21,6 @@ export function TransitionProperties({
   const [event, setEvent] = useState(edge.data?.event || '')
   const [guard, setGuard] = useState(edge.data?.guard || '')
   const [isGuardModalOpen, setIsGuardModalOpen] = useState(false)
-
-  useEffect(() => {
-    setEvent(edge.data?.event || '')
-    setGuard(edge.data?.guard || '')
-  }, [edge.data?.event, edge.data?.guard])
 
   const handleEventBlur = () => {
     if (event.trim() && event !== edge.data?.event) {
@@ -139,4 +134,9 @@ export function TransitionProperties({
       />
     </div>
   )
+}
+
+export function TransitionProperties(props: TransitionPropertiesProps) {
+  // Use key to reset state when edge changes
+  return <TransitionPropertiesContent key={props.edge.id} {...props} />
 }
