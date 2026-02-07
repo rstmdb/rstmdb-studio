@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #0a0a0b;
+  --color-surface: #18181b;
+  --color-border: #27272a;
+  --color-foreground: #fafafa;
+  --color-muted: #a1a1aa;
+  --color-primary: #6366f1;
+  --color-secondary: #10b981;
+  --color-destructive: #ef4444;
+  --color-warning: #f59e0b;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#root {
+  @apply min-h-screen;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-surface;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted;
+}

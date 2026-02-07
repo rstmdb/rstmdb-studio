@@ -1,0 +1,25 @@
+# rstmdb Studio Configuration
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  tls:
+    enabled: false
+    # cert_path: "/path/to/cert.pem"
+    # key_path: "/path/to/key.pem"
+
+rstmdb:
+  address: "127.0.0.1:7401"
+  token: "my-secret-token"  # Or use RSTMDB_TOKEN env var
+  tls:
+    enabled: false
+    # ca_cert_path: "/path/to/ca.pem"
+    insecure: false
+
+auth:
+  session_idle_timeout: "2h"
+  session_max_lifetime: "24h"
+  lockout_attempts: 10
+  lockout_duration: "5m"
+
+data_dir: "~/.rstmdb-studio"
