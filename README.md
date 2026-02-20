@@ -1,6 +1,13 @@
 # rstmdb Studio
 
+[![CI](https://github.com/rstmdb/rstmdb-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/rstmdb/rstmdb-studio/actions/workflows/ci.yml)
+[![Docker](https://img.shields.io/docker/v/rstmdb/rstmdb-studio?sort=semver&label=docker)](https://hub.docker.com/r/rstmdb/rstmdb-studio)
+[![Docker Pulls](https://img.shields.io/docker/pulls/rstmdb/rstmdb-studio)](https://hub.docker.com/r/rstmdb/rstmdb-studio)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Web UI for managing [rstmdb](https://github.com/rstmdb/rstmdb) instances.
+
+![rstmdb Studio](assets/demo-screenshot.png)
 
 ## Features
 
