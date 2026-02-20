@@ -28,28 +28,12 @@ export interface TransitionEdgeData {
 export type StateNode = Node<StateNodeData, 'state'>
 export type TransitionEdge = Edge<TransitionEdgeData>
 
-// Builder state
-export interface BuilderState {
-  nodes: StateNode[]
-  edges: TransitionEdge[]
-  selectedNodeId: string | null
-  selectedEdgeId: string | null
-}
-
 // Selection types
 export type SelectionType = 'none' | 'state' | 'transition'
 
 export interface Selection {
   type: SelectionType
   id: string | null
-}
-
-// Validation
-export interface BuilderValidationError {
-  type: 'error' | 'warning'
-  message: string
-  nodeId?: string
-  edgeId?: string
 }
 
 // View mode for the machine detail page

@@ -1,0 +1,58 @@
+services:
+  rstmdb:
+    image: rstmdb/rstmdb:latest
+    volumes:
+      - rstmdb-data:/data
+    environment:
+      RUST_LOG: debug
+      RSTMDB_BIND: 0.0.0.0:7401
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /proc/1/status"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  studio-init:
+    build: .
+    command:
+      [
+        "init",
+        "--admin-user",
+        "admin",
+        "--admin-pass",
+        "admin",
+        "--data-dir",
+        "/data",
+      ]
+    volumes:
+      - studio-data:/data
+    depends_on:
+      - rstmdb
+    restart: "no"
+
+  studio:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      RSTMDB_ADDR: rstmdb:7401
+      STUDIO_DATA_DIR: /data
+    volumes:
+      - studio-data:/data
+      - ./studio.yaml:/app/studio.yaml:ro
+    command: ["serve", "--config", "/app/studio.yaml"]
+    depends_on:
+      rstmdb:
+        condition: service_healthy
+      studio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  rstmdb-data:
+  studio-data:

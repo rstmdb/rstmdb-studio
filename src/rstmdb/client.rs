@@ -27,10 +27,16 @@ impl StudioClient {
 
     /// Create a new client connection
     async fn create_client(config: &RstmdbConfig) -> Result<Client, ApiError> {
-        let addr = config
-            .address
-            .parse()
-            .map_err(|e| ApiError::bad_request(format!("Invalid rstmdb address: {}", e)))?;
+        let addr = tokio::net::lookup_host(&config.address)
+            .await
+            .map_err(|e| ApiError::bad_request(format!("Invalid rstmdb address: {}", e)))?
+            .next()
+            .ok_or_else(|| {
+                ApiError::bad_request(format!(
+                    "Could not resolve rstmdb address: {}",
+                    config.address
+                ))
+            })?;
 
         let mut conn_config = ConnectionConfig::new(addr).with_client_name("rstmdb-studio");
 
@@ -193,110 +199,6 @@ impl StudioClient {
         })
     }
 
-    /// Create instance
-    pub async fn create_instance(
-        &self,
-        machine: &str,
-        version: u32,
-        instance_id: Option<&str>,
-        initial_ctx: Option<Value>,
-    ) -> Result<CreateInstanceResult, ApiError> {
-        let machine = machine.to_string();
-        let instance_id = instance_id.map(|s| s.to_string());
-        let result = self
-            .with_reconnect("Create instance", |client| {
-                let machine = machine.clone();
-                let instance_id = instance_id.clone();
-                let initial_ctx = initial_ctx.clone();
-                async move {
-                    let c = client.read().await;
-                    c.create_instance(&machine, version, instance_id.as_deref(), initial_ctx, None)
-                        .await
-                }
-            })
-            .await?;
-        Ok(CreateInstanceResult {
-            instance_id: result.instance_id,
-            state: result.state,
-            wal_offset: result.wal_offset,
-        })
-    }
-
-    /// Delete instance
-    pub async fn delete_instance(&self, id: &str) -> Result<(), ApiError> {
-        let id = id.to_string();
-        self.with_reconnect("Delete instance", |client| {
-            let id = id.clone();
-            async move {
-                let c = client.read().await;
-                c.delete_instance(&id, None).await
-            }
-        })
-        .await
-        .map_err(|e| {
-            if e.to_string().contains("not found") {
-                ApiError::not_found("Instance")
-            } else {
-                e
-            }
-        })?;
-        Ok(())
-    }
-
-    /// Apply event to instance
-    pub async fn apply_event(
-        &self,
-        instance_id: &str,
-        event: &str,
-        payload: Option<Value>,
-        expected_state: Option<&str>,
-    ) -> Result<ApplyEventResult, ApiError> {
-        let instance_id = instance_id.to_string();
-        let event = event.to_string();
-        let expected_state = expected_state.map(|s| s.to_string());
-        let result = self
-            .with_reconnect("Apply event", |client| {
-                let instance_id = instance_id.clone();
-                let event = event.clone();
-                let payload = payload.clone();
-                let expected_state = expected_state.clone();
-                async move {
-                    let c = client.read().await;
-                    c.apply_event(
-                        &instance_id,
-                        &event,
-                        payload,
-                        expected_state.as_deref(),
-                        None,
-                    )
-                    .await
-                }
-            })
-            .await
-            .map_err(|e| {
-                let msg = e.to_string();
-                if msg.contains("INVALID_TRANSITION") {
-                    ApiError::new("INVALID_TRANSITION", msg)
-                } else if msg.contains("GUARD_FAILED") {
-                    ApiError::new("GUARD_FAILED", msg)
-                } else if msg.contains("STATE_MISMATCH") {
-                    ApiError::new("STATE_MISMATCH", msg)
-                } else if msg.contains("not found") {
-                    ApiError::not_found("Instance")
-                } else {
-                    e
-                }
-            })?;
-        Ok(ApplyEventResult {
-            from_state: result.from_state,
-            to_state: result.to_state,
-            ctx: result.ctx.unwrap_or(Value::Null),
-            wal_offset: result.wal_offset,
-            applied: result.applied,
-            event_id: result.event_id,
-        })
-    }
-
     /// Read WAL entries
     pub async fn wal_read(&self, from: u64, limit: Option<u64>) -> Result<Value, ApiError> {
         self.with_reconnect("WAL read", |client| async move {
@@ -374,23 +276,6 @@ pub struct InstanceResult {
     pub state: String,
     pub ctx: Value,
     pub last_wal_offset: u64,
-}
-
-#[derive(Debug, serde::Serialize)]
-pub struct CreateInstanceResult {
-    pub instance_id: String,
-    pub state: String,
-    pub wal_offset: u64,
-}
-
-#[derive(Debug, serde::Serialize)]
-pub struct ApplyEventResult {
-    pub from_state: String,
-    pub to_state: String,
-    pub ctx: Value,
-    pub wal_offset: u64,
-    pub applied: bool,
-    pub event_id: Option<String>,
 }
 
 #[derive(Debug, serde::Serialize)]

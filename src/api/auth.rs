@@ -32,11 +32,6 @@ pub struct MeResponse {
     pub logged_in: bool,
 }
 
-#[derive(Debug, Serialize)]
-pub struct CsrfResponse {
-    pub token: String,
-}
-
 /// POST /api/v1/auth/login
 pub async fn login(
     State(state): State<Arc<AppState>>,
@@ -102,12 +97,4 @@ pub async fn me(session: Session) -> ApiResult<Json<MeResponse>> {
             logged_in: false,
         })),
     }
-}
-
-/// GET /api/v1/auth/csrf
-pub async fn csrf_token() -> ApiResult<Json<CsrfResponse>> {
-    // Generate CSRF token
-    Ok(Json(CsrfResponse {
-        token: uuid::Uuid::new_v4().to_string(),
-    }))
 }

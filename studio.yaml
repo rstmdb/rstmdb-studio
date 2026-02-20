@@ -10,7 +10,7 @@ server:
 
 rstmdb:
   address: "127.0.0.1:7401"
-  token: "my-secret-token"  # Or use RSTMDB_TOKEN env var
+  # token: "my-secret-token"  # Or use RSTMDB_TOKEN env var
   tls:
     enabled: false
     # ca_cert_path: "/path/to/ca.pem"
@@ -22,4 +22,4 @@ auth:
   lockout_attempts: 10
   lockout_duration: "5m"
 
-data_dir: "~/.rstmdb-studio"
+# data_dir: "~/.rstmdb-studio"

@@ -34,10 +34,6 @@ export function isCondition(item: GuardItem): item is Condition {
   return item.type === 'condition'
 }
 
-export function isGroup(item: GuardItem): item is ConditionGroup {
-  return item.type === 'group'
-}
-
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 9)
 }

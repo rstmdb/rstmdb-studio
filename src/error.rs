@@ -43,10 +43,6 @@ impl ApiError {
         Self::new("UNAUTHORIZED", "Authentication required")
     }
 
-    pub fn forbidden() -> Self {
-        Self::new("FORBIDDEN", "Access denied")
-    }
-
     pub fn not_found(resource: &str) -> Self {
         Self::new("NOT_FOUND", format!("{} not found", resource))
     }
@@ -127,13 +123,6 @@ mod tests {
         let err = ApiError::unauthorized();
         assert_eq!(err.code, "UNAUTHORIZED");
         assert_eq!(err.message, "Authentication required");
-    }
-
-    #[test]
-    fn test_forbidden_error() {
-        let err = ApiError::forbidden();
-        assert_eq!(err.code, "FORBIDDEN");
-        assert_eq!(err.message, "Access denied");
     }
 
     #[test]

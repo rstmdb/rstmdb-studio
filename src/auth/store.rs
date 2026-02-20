@@ -77,33 +77,6 @@ impl AuthStore {
         }
     }
 
-    /// Get a user by username
-    pub fn get_user(&self, username: &str) -> Option<User> {
-        self.data.read().users.get(username).cloned()
-    }
-
-    /// Update user password
-    pub fn update_password(&self, username: &str, new_password: &str) -> anyhow::Result<bool> {
-        let password_hash = hash_password(new_password)?;
-
-        let updated = {
-            let mut data = self.data.write();
-            if let Some(user) = data.users.get_mut(username) {
-                user.password_hash = password_hash;
-                user.updated_at = Utc::now();
-                true
-            } else {
-                false
-            }
-        };
-
-        if updated {
-            self.save()?;
-        }
-
-        Ok(updated)
-    }
-
     /// Save to file
     fn save(&self) -> anyhow::Result<()> {
         let data = self.data.read();

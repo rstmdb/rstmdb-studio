@@ -21,7 +21,6 @@ use clap::{Parser, Subcommand};
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
@@ -210,7 +209,6 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/auth/login", post(api::auth::login))
         .route("/auth/logout", post(api::auth::logout))
         .route("/auth/me", get(api::auth::me))
-        .route("/auth/csrf", get(api::auth::csrf_token))
         // Machine routes
         .route("/machines", get(api::machines::list_machines))
         .route("/machines/:name", get(api::machines::get_machine))
@@ -243,13 +241,6 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/healthz", get(api::server::healthz))
         .route("/readyz", get(api::server::readyz));
 
-    // CORS configuration
-    // Note: credentials require specific origins/headers, not wildcards
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
-
     Router::new()
         .nest("/api/v1", api)
         .merge(health)
@@ -257,6 +248,5 @@ fn create_router(state: Arc<AppState>) -> Router {
         .fallback(static_handler)
         .layer(session_layer)
         .layer(TraceLayer::new_for_http())
-        .layer(cors)
         .with_state(state)
 }

@@ -12,11 +12,6 @@ import type {
 const NODE_SPACING_X = 180
 const NODE_SPACING_Y = 100
 
-// Generate a unique ID for new nodes
-export function generateNodeId(): string {
-  return `state_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
-}
-
 // Generate a unique ID for new edges
 export function generateEdgeId(from: string, to: string, event: string): string {
   return `${from}-${event}-${to}`

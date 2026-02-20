@@ -3,7 +3,7 @@ name = "rstmdb-studio"
 version = "0.1.0"
 edition = "2021"
 description = "Web UI for managing rstmdb instances"
-license = "BSL-1.1"
+license = "MIT"
 repository = "https://github.com/rstmdb/rstmdb-studio"
 
 [[bin]]
@@ -13,8 +13,7 @@ path = "src/main.rs"
 [dependencies]
 # Web framework
 axum = { version = "0.7", features = ["macros"] }
-tower = { version = "0.4", features = ["util"] }
-tower-http = { version = "0.5", features = ["fs", "cors", "trace"] }
+tower-http = { version = "0.5", features = ["fs", "trace"] }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
@@ -53,9 +52,6 @@ clap = { version = "4.5", features = ["derive", "env"] }
 # rstmdb client
 rstmdb-client = "0.1.1"
 rstmdb-protocol = "0.1.1"
-
-# Validation
-jsonschema = "0.18"
 
 # Embedded frontend assets
 rust-embed = { version = "8", features = ["mime-guess"] }

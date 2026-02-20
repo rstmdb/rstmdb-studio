@@ -124,8 +124,8 @@ impl Config {
         let config: Config = Figment::new()
             .merge(Serialized::defaults(Config::default()))
             .merge(Yaml::file(config_path))
-            .merge(Env::prefixed("STUDIO_").split("_"))
             .merge(Serialized::defaults(cli_overrides))
+            .merge(Env::prefixed("STUDIO_").split("__"))
             .extract()?;
 
         Ok(config)
