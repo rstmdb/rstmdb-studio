@@ -48,4 +48,4 @@ ENV RSTMDB_ADDR=rstmdb:7401
 EXPOSE 8080
 
 ENTRYPOINT ["/sbin/tini", "--", "rstmdb-studio"]
-CMD ["serve", "--data-dir", "/data"]
+CMD ["serve"]
