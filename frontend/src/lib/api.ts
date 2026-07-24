@@ -219,6 +219,31 @@ export const wal = {
   },
 }
 
+// Replication
+export interface ReplicaPeer {
+  replica_id: string
+  last_acked_sequence: number
+  lag_entries: number
+}
+
+export type ReplicationStatus =
+  | { role: 'standalone' }
+  | {
+      role: 'primary'
+      mode: 'sync' | 'async'
+      primary_sequence: number
+      connected_replicas: number
+      replicas: ReplicaPeer[]
+    }
+  | {
+      role: 'replica'
+      upstream: string
+      last_applied_sequence: number
+      primary_sequence: number
+      lag_entries: number
+      lag_seconds: number
+    }
+
 // Server
 export const server = {
   async info() {
@@ -232,6 +257,10 @@ export const server = {
         features: string[]
       }
     }>('/server/info')
+  },
+
+  async replication() {
+    return get<ReplicationStatus>('/server/replication')
   },
 
   async health() {

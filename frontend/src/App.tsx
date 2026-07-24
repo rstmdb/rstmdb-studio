@@ -9,6 +9,7 @@ import { CreateMachinePage } from './pages/CreateMachinePage'
 import { InstancesPage } from './pages/InstancesPage'
 import { InstanceDetailPage } from './pages/InstanceDetailPage'
 import { WalPage } from './pages/WalPage'
+import { ReplicationPage } from './pages/ReplicationPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +34,7 @@ function App() {
             <Route path="instances" element={<InstancesPage />} />
             <Route path="instances/:id" element={<InstanceDetailPage />} />
             <Route path="wal" element={<WalPage />} />
+            <Route path="replication" element={<ReplicationPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

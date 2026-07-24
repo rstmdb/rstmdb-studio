@@ -1,6 +1,6 @@
 [package]
 name = "rstmdb-studio"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Web UI for managing rstmdb instances"
 license = "MIT"
@@ -44,14 +44,14 @@ uuid = { version = "1.7", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 parking_lot = "0.12"
 shellexpand = "3"
-time = "0.3.36"  # Pin to version compatible with Rust 1.85
+time = "0.3.36"                                        # Pin to version compatible with Rust 1.85
 
 # CLI
 clap = { version = "4.5", features = ["derive", "env"] }
 
 # rstmdb client
-rstmdb-client = "0.1.1"
-rstmdb-protocol = "0.1.1"
+rstmdb-client = "0.3.0"
+rstmdb-protocol = "0.3.0"
 
 # Embedded frontend assets
 rust-embed = { version = "8", features = ["mime-guess"] }

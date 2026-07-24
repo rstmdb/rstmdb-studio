@@ -5,6 +5,7 @@ use crate::json_ext::ValueExt;
 use crate::AppState;
 use axum::{extract::State, http::StatusCode, Json};
 use serde::Serialize;
+use serde_json::Value;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -54,6 +55,16 @@ pub async fn info(State(state): State<Arc<AppState>>) -> ApiResult<Json<ServerIn
             features: rstmdb_info.string_array("features"),
         },
     }))
+}
+
+/// GET /api/v1/server/replication
+///
+/// Returns the connected server's replication status verbatim. The shape
+/// depends on the server role (standalone / primary / replica); the frontend
+/// discriminates on the `role` field.
+pub async fn replication(State(state): State<Arc<AppState>>) -> ApiResult<Json<Value>> {
+    let status = state.rstmdb.replication_status().await?;
+    Ok(Json(status))
 }
 
 /// GET /api/v1/server/health

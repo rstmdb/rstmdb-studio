@@ -234,6 +234,7 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/wal/:offset", get(api::wal::get_wal_entry))
         // Server routes
         .route("/server/info", get(api::server::info))
+        .route("/server/replication", get(api::server::replication))
         .route("/server/health", get(api::server::health));
 
     // Health endpoints (no auth required)

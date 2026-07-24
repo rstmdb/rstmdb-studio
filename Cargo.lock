@@ -1110,9 +1110,9 @@ dependencies = [
 
 [[package]]
 name = "rstmdb-client"
-version = "0.1.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9f9f7ab7b1cfc263c3ffefe02052aab3ec684e24d5ca01bbdc3823194ad4676"
+checksum = "74840974f709ecf6ecf5e6cd87d633263af3423f5866e4f431a219a82ca0d1bd"
 dependencies = [
  "bytes",
  "pin-project-lite",
@@ -1131,9 +1131,9 @@ dependencies = [
 
 [[package]]
 name = "rstmdb-protocol"
-version = "0.1.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efce80e96aaea4166d3978d1fed947cd4d80cc85d8f21d875537794a0c5babf3"
+checksum = "9aa8a4ccecb19fb5bda2816561aa63b1aa8c31d0afe8698fc1e433338559bc47"
 dependencies = [
  "bytes",
  "chrono",
@@ -1146,7 +1146,7 @@ dependencies = [
 
 [[package]]
 name = "rstmdb-studio"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "argon2",

@@ -6,6 +6,7 @@ import {
   Workflow,
   Box,
   ScrollText,
+  GitBranch,
   LogOut,
   Server,
   ChevronLeft,
@@ -18,6 +19,7 @@ const navItems = [
   { path: '/machines', label: 'Machines', icon: Workflow },
   { path: '/instances', label: 'Instances', icon: Box },
   { path: '/wal', label: 'WAL', icon: ScrollText },
+  { path: '/replication', label: 'Replication', icon: GitBranch },
 ]
 
 export function Layout() {
