@@ -217,6 +217,22 @@ impl StudioClient {
         .await
     }
 
+    /// Get replication status.
+    ///
+    /// The shape of the returned value depends on the connected server's role:
+    /// - `standalone`: `{ "role": "standalone" }`
+    /// - `primary`: role, mode, primary_sequence, connected_replicas, and a
+    ///   `replicas` array (replica_id, last_acked_sequence, lag_entries)
+    /// - `replica`: role, upstream, last_applied_sequence, primary_sequence,
+    ///   lag_entries, lag_seconds
+    pub async fn replication_status(&self) -> Result<Value, ApiError> {
+        self.with_reconnect("Replication status", |client| async move {
+            let c = client.read().await;
+            c.replication_status().await
+        })
+        .await
+    }
+
     /// List instances for a specific machine with optional state filter and pagination
     pub async fn list_instances(
         &self,
