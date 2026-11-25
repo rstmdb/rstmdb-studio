@@ -75,8 +75,8 @@ impl IntoResponse for ApiError {
             "FORBIDDEN" => StatusCode::FORBIDDEN,
             "NOT_FOUND" => StatusCode::NOT_FOUND,
             "BAD_REQUEST" => StatusCode::BAD_REQUEST,
-            "VALIDATION_ERROR" => StatusCode::UNPROCESSABLE_ENTITY,
-            "CONFLICT" => StatusCode::CONFLICT,
+            "VALIDATION_ERROR" | "GUARD_UNKNOWN" => StatusCode::UNPROCESSABLE_ENTITY,
+            "CONFLICT" | "IDEMPOTENCY_CONFLICT" => StatusCode::CONFLICT,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         };
 
@@ -166,32 +166,26 @@ mod tests {
 
     #[test]
     fn test_status_code_mapping() {
-        // Test that error codes map to correct HTTP status codes
-        fn get_status(code: &str) -> StatusCode {
-            match code {
-                "UNAUTHORIZED" => StatusCode::UNAUTHORIZED,
-                "FORBIDDEN" => StatusCode::FORBIDDEN,
-                "NOT_FOUND" => StatusCode::NOT_FOUND,
-                "BAD_REQUEST" => StatusCode::BAD_REQUEST,
-                "VALIDATION_ERROR" => StatusCode::UNPROCESSABLE_ENTITY,
-                "CONFLICT" => StatusCode::CONFLICT,
-                _ => StatusCode::INTERNAL_SERVER_ERROR,
-            }
-        }
+        let cases = [
+            ("UNAUTHORIZED", StatusCode::UNAUTHORIZED),
+            ("FORBIDDEN", StatusCode::FORBIDDEN),
+            ("NOT_FOUND", StatusCode::NOT_FOUND),
+            ("BAD_REQUEST", StatusCode::BAD_REQUEST),
+            ("VALIDATION_ERROR", StatusCode::UNPROCESSABLE_ENTITY),
+            ("GUARD_UNKNOWN", StatusCode::UNPROCESSABLE_ENTITY),
+            ("CONFLICT", StatusCode::CONFLICT),
+            ("IDEMPOTENCY_CONFLICT", StatusCode::CONFLICT),
+            ("INTERNAL_ERROR", StatusCode::INTERNAL_SERVER_ERROR),
+            ("UNKNOWN_FUTURE_CODE", StatusCode::INTERNAL_SERVER_ERROR),
+        ];
 
-        assert_eq!(get_status("UNAUTHORIZED"), StatusCode::UNAUTHORIZED);
-        assert_eq!(get_status("FORBIDDEN"), StatusCode::FORBIDDEN);
-        assert_eq!(get_status("NOT_FOUND"), StatusCode::NOT_FOUND);
-        assert_eq!(get_status("BAD_REQUEST"), StatusCode::BAD_REQUEST);
-        assert_eq!(
-            get_status("VALIDATION_ERROR"),
-            StatusCode::UNPROCESSABLE_ENTITY
-        );
-        assert_eq!(get_status("CONFLICT"), StatusCode::CONFLICT);
-        assert_eq!(
-            get_status("INTERNAL_ERROR"),
-            StatusCode::INTERNAL_SERVER_ERROR
-        );
-        assert_eq!(get_status("UNKNOWN"), StatusCode::INTERNAL_SERVER_ERROR);
+        for (code, expected_status) in cases {
+            let response = ApiError::new(code, "test").into_response();
+            assert_eq!(
+                response.status(),
+                expected_status,
+                "unexpected HTTP status for error code {code}"
+            );
+        }
     }
 }
